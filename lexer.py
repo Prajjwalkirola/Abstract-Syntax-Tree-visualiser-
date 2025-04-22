@@ -131,5 +131,14 @@ class Lexer:
                     tokens.append(("IDENTIFIER", ident))
                 self.add_to_symbol_table("IDENTIFIER", ident)
 
-
         return tokens
+
+ def save_symbol_table(self, filename="symbol_table.txt"):
+        try:
+            with open(filename, "w") as file:
+                for symbol, token_type in self.symbol_table.items():
+                    file.write(f"{symbol}: {token_type}\n")
+            print(f"Symbol table saved to '{filename}'.")
+        except Exception as e:
+            print(f"Failed to save symbol table: {e}")
+
