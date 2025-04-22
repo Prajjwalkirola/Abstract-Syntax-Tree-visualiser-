@@ -142,3 +142,16 @@ class Lexer:
         except Exception as e:
             print(f"Failed to save symbol table: {e}")
 
+
+if __name__ == "__main__":
+    lexer = Lexer("source.py")  # Replace with your actual source file
+    tokens = lexer.tokenize()
+    
+    # Print tokens if you want
+    for token in tokens:
+        print(token)
+
+    # Now save the symbol table
+    lexer.save_symbol_table()
+
+
