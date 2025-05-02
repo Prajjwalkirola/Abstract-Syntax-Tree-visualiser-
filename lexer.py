@@ -7,7 +7,7 @@ class Lexer:
         self.keywords = {"if", "else", "while", "for", "return", "def", "class", "import", "from", "print"}
         self.operators = {"+", "-", "*", "/", "%", "=", "==", "!=", "<", ">", "<=", ">="}
         self.delimiters = {"(", ")", "{", "}", "[", "]", ",", ":", ".", ";"}
-        self.indent_stack = [0]  # Stack to track indentation levels
+        self.indent_stack = [0]
         self.line_num = 1
 
     def add_to_symbol_table(self, token_type, value):
@@ -24,7 +24,7 @@ class Lexer:
             raise Exception(f"Error reading file '{self.filename}': {e}")
 
     def is_identifier(self, token):
-        return token[0].isalpha() or token[0] == '_' and all(c.isalnum() or c == '_' for c in token)
+        return (token[0].isalpha() or token[0] == '_') and all(c.isalnum() or c == '_' for c in token)
 
     def is_number(self, token):
         if token.isdigit():
@@ -34,34 +34,23 @@ class Lexer:
             return len(parts) == 2 and all(part.isdigit() for part in parts)
         return False
 
-    def classify_and_store(self, token):
-        if token in self.keywords:
-            self.tokens.append(("KEYWORD", token))
-        elif token in self.operators:
-            self.tokens.append(("OPERATOR", token))
-        elif token in self.delimiters:
-            self.tokens.append(("SEPARATOR", token))
-        elif self.is_identifier(token):
-            self.tokens.append(("IDENTIFIER", token))
-        elif self.is_number(token):
-            self.tokens.append(("NUMBER", token))
-        else:
-            self.tokens.append(("UNKNOWN", token))
-
     def tokenize(self):
         for line in self.source_code:
-            stripped_line = line.rstrip()  # Remove trailing spaces
+            stripped_line = line.rstrip()
             if not stripped_line:
-                continue  # Ignore empty lines
-            tokens = self.process_line(line)
-            self.tokens.extend(tokens)
+                self.line_num += 1
+                continue
+
+            tokens_in_line = self.process_line(line)
+            self.tokens.extend(tokens_in_line)
+            self.line_num += 1
 
         return self.tokens
 
     def process_line(self, line):
         tokens = []
-        stripped_line = line.lstrip()  # Remove leading spaces
-        leading_spaces = len(line) - len(stripped_line)  # Count the spaces before content
+        stripped_line = line.lstrip()
+        leading_spaces = len(line) - len(stripped_line)
 
         # Handle indentation
         if leading_spaces > self.indent_stack[-1]:
@@ -76,51 +65,55 @@ class Lexer:
         while i < len(line):
             char = line[i]
 
-            if char.isspace():  # Handling whitespaces
+            if char.isspace():
                 i += 1
                 continue
 
-            if char == "#":  # Handling single-line comments
-                break  # Ignore the rest of the line
+            if char == "#":
+                break  # Comment — ignore rest of line
 
-            if char in self.operators:  # Handling operators
-                if i + 1 < len(line) and line[i:i + 2] in self.operators:
-                    tokens.append(("OPERATOR", line[i:i + 2]))
-                    self.add_to_symbol_table("OPERATOR", line[i:i + 2])
-                    i += 2
-                else:
-                    tokens.append(("OPERATOR", char))
-                    self.add_to_symbol_table("OPERATOR", char)
-                    i += 1
+            # Multi-character operator
+            if line[i:i+2] in self.operators:
+                tokens.append(("OPERATOR", line[i:i+2]))
+                self.add_to_symbol_table("OPERATOR", line[i:i+2])
+                i += 2
+                continue
+            elif char in self.operators:
+                tokens.append(("OPERATOR", char))
+                self.add_to_symbol_table("OPERATOR", char)
+                i += 1
+                continue
 
-            elif char in self.delimiters:  # Handling delimiters
+            if char in self.delimiters:
                 tokens.append(("SEPARATOR", char))
                 self.add_to_symbol_table("SEPARATOR", char)
                 i += 1
+                continue
 
-            elif char.isdigit() or (char == "." and i + 1 < len(line) and line[i + 1].isdigit()):  
+            # Number
+            if char.isdigit() or (char == "." and i + 1 < len(line) and line[i + 1].isdigit()):
                 num = ""
-                is_float = False
                 while i < len(line) and (line[i].isdigit() or line[i] == "."):
-                    if line[i] == ".":
-                        is_float = True
                     num += line[i]
                     i += 1
                 tokens.append(("NUMBER", num))
                 self.add_to_symbol_table("NUMBER", num)
+                continue
 
-            elif char == '"':  # Handling string literals
+            # String literal
+            if char == '"':
                 string_literal = ""
-                i += 1  # Skip the opening quote
+                i += 1  # Skip opening quote
                 while i < len(line) and line[i] != '"':
                     string_literal += line[i]
                     i += 1
-                if i < len(line):  # Skip the closing quote
-                    i += 1
+                i += 1  # Skip closing quote
                 tokens.append(("STRING", string_literal))
                 self.add_to_symbol_table("STRING", string_literal)
+                continue
 
-            elif char.isalpha() or char == "_":  # Identifiers or keywords
+            # Identifier or keyword
+            if char.isalpha() or char == "_":
                 ident = ""
                 while i < len(line) and (line[i].isalnum() or line[i] == "_"):
                     ident += line[i]
@@ -130,10 +123,15 @@ class Lexer:
                 else:
                     tokens.append(("IDENTIFIER", ident))
                 self.add_to_symbol_table("IDENTIFIER", ident)
+                continue
+
+            # Unknown token
+            tokens.append(("UNKNOWN", char))
+            i += 1
 
         return tokens
 
- def save_symbol_table(self, filename="symbol_table.txt"):
+    def save_symbol_table(self, filename="symbol_table.txt"):
         try:
             with open(filename, "w") as file:
                 for symbol, token_type in self.symbol_table.items():
@@ -144,14 +142,11 @@ class Lexer:
 
 
 if __name__ == "__main__":
-    lexer = Lexer("source.py")  # Replace with your actual source file
+    lexer = Lexer("source.py")  # Replace with your file
     tokens = lexer.tokenize()
-    
-    # Print tokens if you want
+
+    print("Tokens:\n")
     for token in tokens:
         print(token)
 
-    # Now save the symbol table
     lexer.save_symbol_table()
-
-
