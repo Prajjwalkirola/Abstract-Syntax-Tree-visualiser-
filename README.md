@@ -54,7 +54,7 @@ abstract-syntax-tree-visualizer/
 ```bash
 git clone https://github.com/your-username/abstract-syntax-tree-visualizer.git
 cd abstract-syntax-tree-visualizer
-
+````
 ---
 ## Run the Lexer
 ```bash
@@ -62,7 +62,7 @@ Copy
 Edit
 python lexer.py
 This reads source.txt and saves tokens to symbol_table.txt.
-
+````
 ---
 
 ## Run the Parser
@@ -71,7 +71,7 @@ Copy
 Edit
 python parser.py
 This parses the tokens and generates an AST or shows an error.
-
+````
 ---
 
 ## Start the Web Interface (Optional)
@@ -82,7 +82,7 @@ Copy
 Edit
 python app.py
 Then go to http://localhost:5000/ to enter source code and see the AST.
-
+````
 🌐 Web Interface
 The user enters code in the frontend (index.html)
 
