@@ -55,25 +55,29 @@ abstract-syntax-tree-visualizer/
 git clone https://github.com/your-username/abstract-syntax-tree-visualizer.git
 cd abstract-syntax-tree-visualizer
 
-
-2. Run the Lexer
-bash
+---
+## Run the Lexer
+```bash
 Copy
 Edit
 python lexer.py
 This reads source.txt and saves tokens to symbol_table.txt.
 
-3. Run the Parser
-bash
+---
+
+## Run the Parser
+```bash
 Copy
 Edit
 python parser.py
 This parses the tokens and generates an AST or shows an error.
 
-4. Start the Web Interface (Optional)
+---
+
+## Start the Web Interface (Optional)
 If you're using Flask:
 
-bash
+```bash
 Copy
 Edit
 python app.py
@@ -101,13 +105,10 @@ Pull requests, feature ideas, and improvements are always welcome!
 📄 License
 This project is licensed under the MIT License.
 
-👩‍💻 Made with ❤️ by Pranitha Padaliya
-yaml
-Copy
-Edit
+
 
 ---
 
-You're all set to just paste this into your `README.md` file. Would you like me to generate the basic `app.py` and `index.h
+
 
   
