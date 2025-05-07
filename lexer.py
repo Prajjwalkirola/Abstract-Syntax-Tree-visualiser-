@@ -1,3 +1,6 @@
+import json
+
+tokens = [ "KEYWORDS", "OPERATORS", "SEPARATORS", "IDENTIFIER", "NUMBER", "STRING", "INDENT", "DEDENT"]
 class Lexer:
     def __init__(self, filename):
         self.filename = filename
@@ -13,6 +16,14 @@ class Lexer:
     def add_to_symbol_table(self, token_type, value):
         if value not in self.symbol_table:
             self.symbol_table[value] = token_type
+    
+    def save_token(self, filename="tokens.json"):
+        try:
+            with open(filename, "w")as f:
+                json.dump(self.tokens, f)
+            print(f"token stream saved to'{filename}'.")
+        except Exception as e:
+            print(f"failed to save tokens: {e}")
 
     def load_source_code(self):
         try:
@@ -135,7 +146,7 @@ class Lexer:
         try:
             with open(filename, "w") as file:
                 for symbol, token_type in self.symbol_table.items():
-                    file.write(f"{symbol}: {token_type}\n")
+                    file.write(f"{token_type}, {symbol}\n")
             print(f"Symbol table saved to '{filename}'.")
         except Exception as e:
             print(f"Failed to save symbol table: {e}")
@@ -149,4 +160,5 @@ if __name__ == "__main__":
     for token in tokens:
         print(token)
 
-    lexer.save_symbol_table()
+    lexer.save_token("tokens.json")
+    lexer.save_symbol_table("symbols.txt")
