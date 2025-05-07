@@ -102,8 +102,7 @@ Visualization is handled using a Python tree library and rendered on the fronten
 🙋‍♀️ Contributions
 Pull requests, feature ideas, and improvements are always welcome!
 
-📄 License
-This project is licensed under the MIT License.
+
 
 
 
