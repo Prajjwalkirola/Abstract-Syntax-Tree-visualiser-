@@ -109,3 +109,6 @@ if __name__ == "__main__":
 
     print("Abstract Syntax Tree (AST):")
     print(json.dumps(ast, indent=2))  # Pretty print the AST
+    with open("ast.json","w")as f:
+        json.dump(ast,f,indent=2)
+    print("ast written to ast.json")
