@@ -69,6 +69,36 @@ class Parser:
         self.consume("SEPARATOR")   # ';'
         return {"type": "PrintStatement", "value": expr}
 
+
+    def parse_if(self):
+        if self.current_token[0] in("IDENTIDIER","KEYWORD") and self.current_token[1]=="print":
+            self.advance()
+        else:
+            self.error(f"exception print keyword but got {self.current_token}")
+        self.consume("SEPARATOR") #:
+        self.consume("INDENT")
+        body = self.parse_block()
+        else_body = None
+        if self.current_token and self.current_token[1] == "else":
+            self.consume("KEYWORD", "else")
+            self.consume("SEPARATOR", ":")
+            self.consume("INDENT")
+            else_body = self.parse_block()
+            if self.current_token and self.current_token[1] == "else":
+                self.consume("KEYWORD", "else")
+                self.consume("SEPARATOR", ":")
+                self.consume("INDENT")
+                else_body = self.parse_block()
+        return {"type": "IfStatement", "condition": condition, "body": body, "else": else_body}
+
+    def parse_block(self):
+        statements = []
+        while self.current_token and self.current_token[0] != "DEDENT":
+            statements.append(self.parse_statement())
+        if self.current_token and self.current_token[0] == "DEDENT":
+            self.consume("DEDENT")
+        return statements
+        
     def parse_expression(self):
         return self.parse_term()
 
