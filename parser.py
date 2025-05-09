@@ -43,12 +43,14 @@ class Parser:
 
     def parse_statement(self):
         if self.current_token[1] == "print" and self.current_token[0] in ("IDENTIFIER","KEYWORD"):
-            
             return self.parse_print()
-        elif self.current_token[0]=="IDENTIFIER":
+        elif self.current_token[1] == "if" and self.current_token[0] == "KEYWORD":
+            return self.parse_if()
+        elif self.current_token[0] == "IDENTIFIER":
             return self.parse_assignment()
         else:
             self.error("Invalid statement")
+
 
     def parse_assignment(self):
         var_name = self.current_token[1]
@@ -71,21 +73,21 @@ class Parser:
 
 
     def parse_if(self):
-        if self.current_token[0] in("IDENTIDIER","KEYWORD") and self.current_token[1]=="print":
-            self.advance()
-        else:
-            self.error(f"exception print keyword but got {self.current_token}")
+        self.consume("KEYWORD")
+        self.consume("SEPARATOR")
+        condition = self.parse_expression()
+        self.consume("SEPARATOR")
         self.consume("SEPARATOR") #:
         self.consume("INDENT")
         body = self.parse_block()
         else_body = None
-        if self.current_token and self.current_token[1] == "else":
-            self.consume("KEYWORD", "else")
+        if self.current_token and self.current_token[0] == "KEYWORD" and self.current_token[1]=="else":
+            self.advance()
             self.consume("SEPARATOR", ":")
             self.consume("INDENT")
             else_body = self.parse_block()
-            if self.current_token and self.current_token[1] == "else":
-                self.consume("KEYWORD", "else")
+            if self.current_token and self.current_token[0] == "KEYWORD" and self.current_token[1]=="elif":
+                self.advance()
                 self.consume("SEPARATOR", ":")
                 self.consume("INDENT")
                 else_body = self.parse_block()
@@ -100,7 +102,13 @@ class Parser:
         return statements
         
     def parse_expression(self):
-        return self.parse_term()
+        node= self.parse_term()
+        while self.current_token and self.current_token[0]== "OPERATOR":
+            op= self.current_token[1]
+            self.advance()
+            right= self.parse_term()
+            node = {"type":"BinaryExpression","operator":op, "left":node, "right":right}
+        return node
 
     def parse_term(self):
         node = self.parse_factor()
@@ -142,3 +150,4 @@ if __name__ == "__main__":
     with open("ast.json","w")as f:
         json.dump(ast,f,indent=2)
     print("ast written to ast.json")
+    
