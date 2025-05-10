@@ -70,28 +70,50 @@ class Parser:
         self.consume("SEPARATOR")   # ')'
         self.consume("SEPARATOR")   # ';'
         return {"type": "PrintStatement", "value": expr}
+    
+    def parse_string(self):
+        value = self.current_token[1]
+        self.consume("STRING")
+        return{"type":"String","value": value}
 
 
     def parse_if(self):
-        self.consume("KEYWORD")
-        self.consume("SEPARATOR")
+        self.consume("KEYWORD","if")
+        self.consume("SEPARATOR","(")
         condition = self.parse_expression()
-        self.consume("SEPARATOR")
-        self.consume("SEPARATOR") #:
-        self.consume("INDENT")
-        body = self.parse_block()
-        else_body = None
-        if self.current_token and self.current_token[0] == "KEYWORD" and self.current_token[1]=="else":
-            self.advance()
+        self.consume("SEPARATOR",")")
+        self.consume("SEPARATOR",":") #:
+        self.consume("INDENT")[1]
+        body = self.parse_block(indent)
+        
+        if_node = {
+            "type": "IfStatement",
+            "condition": condition,
+            "body": body,
+            " elif_blocks": [],
+            "else_block": None
+        }
+        
+        while self.current_token and self.current_token[0] == "KEYWORD" and self.current_token[1] == "elif":
+            self.consume("KEYWORD", "elif")
+            self.consume("SEPARATOR", "(")
+            elif_condition = self.parse_expression()
+            self.consume("SEPARATOR", ")")
             self.consume("SEPARATOR", ":")
-            self.consume("INDENT")
-            else_body = self.parse_block()
-            if self.current_token and self.current_token[0] == "KEYWORD" and self.current_token[1]=="elif":
-                self.advance()
-                self.consume("SEPARATOR", ":")
-                self.consume("INDENT")
-                else_body = self.parse_block()
-        return {"type": "IfStatement", "condition": condition, "body": body, "else": else_body}
+            indent = self.consume("INDENT")[1]
+            elif_body = self.parse_block(indent)
+            if_node["elif_blocks"].append({
+                "condition": elif_condition,
+                "body": elif_body
+        })
+        
+        if self.current_token and self.current_token[0] == "KEYWORD" and self.current_token[1]=="else":
+            self.consume("KEYWORDS","else")
+            self.consume("SEPARATOR", ":")
+            self.consume("INDENT")[1]
+            else_body = self.parse_block(indent)
+            if_node["else_block"]=else_body
+        return if_node
 
     def parse_block(self):
         statements = []
@@ -120,10 +142,18 @@ class Parser:
         return node
 
     def parse_factor(self):
-        if self.current_token[0] == 'NUMBER':
+        token_type, token_value=self.current_token
+        if token_type == 'NUMBER':
             return self.parse_number()
-        elif self.current_token[0] == 'IDENTIFIER':
+        elif token_type == 'STRING':
+            return self.parse_string()
+        elif token_type == 'IDENTIFIER':
             return self.parse_identifier()
+        elif token_type == 'SEPARATOR' and token_type=="(":
+            self.consume( 'SEPARATOR',"(")
+            expr = self.parse_expression()
+            self.consume( 'SEPARATOR',")")
+            return expr
         else:
             self.error("Invalid factor")
 
