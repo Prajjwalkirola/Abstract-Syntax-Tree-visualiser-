@@ -7,11 +7,24 @@ class Lexer:
         self.source_code = self.load_source_code()
         self.tokens = []
         self.symbol_table = {}
-        self.keywords = {"if", "else", "while", "for", "return", "def", "class", "import", "from", "print"}
-        self.operators = {"+", "-", "*", "/", "%", "=", "==", "!=", "<", ">", "<=", ">="}
-        self.delimiters = {"(", ")", "{", "}", "[", "]", ",", ":", ".", ";"}
+        self.keywords = {
+            "if", "else", "elif", "while", "for", "return", "def", "class", 
+            "import", "from", "print", "in", "not", "and", "or", "True", "False",
+            "None", "break", "continue", "try", "except", "finally", "raise",
+            "async", "await", "with", "as", "pass", "global", "nonlocal"
+        }
+        self.operators = {
+            "+", "-", "*", "/", "%", "=", "==", "!=", "<", ">", "<=", ">=",
+            "+=", "-=", "*=", "/=", "%=", "**", "//", "//=", "**=", "&=", "|=",
+            "^=", "<<=", ">>=", "&", "|", "^", "~", "<<", ">>", "is", "is not"
+        }
+        self.delimiters = {
+            "(", ")", "{", "}", "[", "]", ",", ":", ".", ";", "@", "->",
+            "...", "\\", "`"
+        }
         self.indent_stack = [0]
         self.line_num = 1
+        self.column = 0
 
     def add_to_symbol_table(self, token_type, value):
         if value not in self.symbol_table:
@@ -62,6 +75,7 @@ class Lexer:
         tokens = []
         stripped_line = line.lstrip()
         leading_spaces = len(line) - len(stripped_line)
+        self.column = 0
 
         # Handle indentation
         if leading_spaces > self.indent_stack[-1]:
@@ -75,55 +89,84 @@ class Lexer:
         i = 0
         while i < len(line):
             char = line[i]
+            self.column = i
 
             if char.isspace():
                 i += 1
                 continue
 
             if char == "#":
-                break  # Comment — ignore rest of line
+                comment = line[i:].strip()
+                tokens.append(("COMMENT", comment))
+                break
 
-            # Multi-character operator
-            if line[i:i+2] in self.operators:
-                tokens.append(("OPERATOR", line[i:i+2]))
-                self.add_to_symbol_table("OPERATOR", line[i:i+2])
-                i += 2
-                continue
-            elif char in self.operators:
-                tokens.append(("OPERATOR", char))
-                self.add_to_symbol_table("OPERATOR", char)
+            # Handle string literals with different quotes
+            if char in ('"', "'"):
+                quote = char
+                string_literal = ""
                 i += 1
+                while i < len(line) and line[i] != quote:
+                    if line[i] == '\\':
+                        i += 1
+                        if i < len(line):
+                            string_literal += '\\' + line[i]
+                    else:
+                        string_literal += line[i]
+                    i += 1
+                if i >= len(line):
+                    self.error(f"Unterminated string literal at line {self.line_num}")
+                i += 1
+                tokens.append(("STRING", string_literal))
                 continue
 
+            # Handle multi-character operators
+            matched_op = False
+            for op_len in range(3, 0, -1):
+                if i + op_len <= len(line) and line[i:i+op_len] in self.operators:
+                    tokens.append(("OPERATOR", line[i:i+op_len]))
+                    self.add_to_symbol_table("OPERATOR", line[i:i+op_len])
+                    i += op_len
+                    matched_op = True
+                    break
+            if matched_op:
+                continue
+
+            # Handle delimiters
             if char in self.delimiters:
                 tokens.append(("SEPARATOR", char))
                 self.add_to_symbol_table("SEPARATOR", char)
                 i += 1
                 continue
 
-            # Number
+            # Handle numbers (including hex, binary, and float)
             if char.isdigit() or (char == "." and i + 1 < len(line) and line[i + 1].isdigit()):
                 num = ""
-                while i < len(line) and (line[i].isdigit() or line[i] == "."):
-                    num += line[i]
+                is_hex = False
+                is_binary = False
+                if char == "0" and i + 1 < len(line):
+                    if line[i + 1].lower() == "x":
+                        is_hex = True
+                        num = "0x"
+                        i += 2
+                    elif line[i + 1].lower() == "b":
+                        is_binary = True
+                        num = "0b"
+                        i += 2
+                while i < len(line):
+                    if is_hex and line[i].lower() in "0123456789abcdef":
+                        num += line[i]
+                    elif is_binary and line[i] in "01":
+                        num += line[i]
+                    elif not is_hex and not is_binary and (line[i].isdigit() or line[i] == "."):
+                        num += line[i]
+                    else:
+                        break
                     i += 1
                 tokens.append(("NUMBER", num))
                 self.add_to_symbol_table("NUMBER", num)
                 continue
 
-            # String literal
-            if char == '"':
-                string_literal = ""
-                i += 1  # Skip opening quote
-                while i < len(line) and line[i] != '"':
-                    string_literal += line[i]
-                    i += 1
-                i += 1  # Skip closing quote
-                tokens.append(("STRING", string_literal))
-                self.add_to_symbol_table("STRING", string_literal)
-                continue
-
-            # Identifier or keyword
+            # Handle identifiers and keywords
             if char.isalpha() or char == "_":
                 ident = ""
                 while i < len(line) and (line[i].isalnum() or line[i] == "_"):
@@ -141,6 +184,9 @@ class Lexer:
             i += 1
 
         return tokens
+
+    def error(self, message):
+        raise Exception(f"Lexer error at line {self.line_num}, column {self.column}: {message}")
 
     def save_symbol_table(self, filename="symbol_table.txt"):
         try:
