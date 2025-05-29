@@ -1,6 +1,6 @@
 # Abstract Syntax Tree Visualizer
 
-## 📌 Project Description
+## Project Description
 
 **Abstract Syntax Tree Visualizer** is a web-based tool that takes source code from the user, performs **Lexical Analysis**, builds a **Symbol Table**, performs **Parsing**, and generates an **Abstract Syntax Tree (AST)**. If parsing is successful, the AST is visualized on the frontend; otherwise, appropriate error messages are shown.
 
@@ -8,7 +8,7 @@ This project avoids the use of built-in parsing libraries, making it educational
 
 ---
 
-## 🧠 Features
+##  Features
 
 - Accepts source code from the web interface (`source.txt`)
 - Performs **Lexical Analysis** using `lexer.py`
@@ -19,7 +19,7 @@ This project avoids the use of built-in parsing libraries, making it educational
 
 ---
 
-## 🧱 Tech Stack
+##  Tech Stack
 
 | Layer         | Technology Used                |
 |---------------|--------------------------------|
@@ -29,7 +29,7 @@ This project avoids the use of built-in parsing libraries, making it educational
 
 ---
 
-## 📁 Folder Structure
+##  Folder Structure
 
 abstract-syntax-tree-visualizer/
 ├── lexer.py # Lexical analyzer (generates tokens)
@@ -83,7 +83,7 @@ Edit
 python app.py
 Then go to http://localhost:5000/ to enter source code and see the AST.
 ````
-🌐 Web Interface
+Web Interface
 The user enters code in the frontend (index.html)
 
 The backend saves the code into source.txt
@@ -92,14 +92,14 @@ Lexer and Parser process the code
 
 The resulting AST is visualized in the same browser page
 
-⚠️ Notes
+Notes
 No third-party parsing libraries (like PLY, ANTLR, etc.) are used.
 
 All components are custom-coded in Python.
 
 Visualization is handled using a Python tree library and rendered on the frontend.
 
-🙋‍♀️ Contributions
+Contributions
 Pull requests, feature ideas, and improvements are always welcome!
 
 
