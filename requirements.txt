@@ -1,0 +1,7 @@
+fastapi
+hypercorn
+graphviz
+pyvis
+psutil
+PyQt5
+numpy 
