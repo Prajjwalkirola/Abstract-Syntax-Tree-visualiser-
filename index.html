@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AST Visualizer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        textarea { width: 100%; height: 200px; font-size: 16px; }
+        .flex { display: flex; gap: 40px; }
+        .timeline { margin-bottom: 20px; }
+        .ast-tree { max-width: 400px; }
+        .history-btn { margin: 0 2px; }
+    </style>
+</head>
+<body>
+    <h1>AST Visualizer (Python-only Web UI)</h1>
+    <form method="post" action="/submit">
+        <label for="code">Enter your code:</label><br>
+        <textarea name="code" id="code">{{ code }}</textarea><br>
+        <button type="submit">Submit & Visualize</button>
+    </form>
+    <div class="timeline">
+        <label>Timeline: </label>
+        {% for i in range(history_len) %}
+            <a href="/?idx={{ i }}" class="history-btn">{{ i+1 }}</a>
+        {% endfor %}
+        {% if history_len > 0 %}
+            <span>Step {{ idx+1 }} / {{ history_len }}</span>
+        {% endif %}
+    </div>
+    <div class="flex">
+        <div>
+            <h3>Code</h3>
+            <pre>{{ code }}</pre>
+        </div>
+        <div>
+            <h3>AST (JSON)</h3>
+            <pre style="max-width: 400px; overflow-x: auto;">{{ ast_json }}</pre>
+        </div>
+        <div>
+            <h3>AST Tree</h3>
+            {% if tree_exists %}
+                <img src="/tree_img" class="ast-tree" alt="AST Tree" />
+            {% else %}
+                <p>No AST tree image generated yet.</p>
+            {% endif %}
+            <div class="timing">
+                <p>AST Generation Time: {{ ast_generation_time }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
